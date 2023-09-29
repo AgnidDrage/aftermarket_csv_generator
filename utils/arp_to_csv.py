@@ -1,4 +1,5 @@
 import pandas as pd
+import pyfiglet
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,14 +50,15 @@ def clean_text(text):
 
 
 def to_shopify_csv(path_to_excel, path_to_images):
-    # Read the excel data into a pandas dataframe
+
     print("Reading excel data...\n")
+
     raw_data = pd.read_excel(path_to_excel)
     images_df = pd.read_csv(path_to_images)
-    # Creating a new dataframe for the shopify csv
+
     print("Creating shopify csv...\n")
+
     shopify_df = pd.DataFrame(columns=shopify_field_names)
-    # Loop through the rows of the raw data
     for index, row in tqdm(raw_data.iterrows(), total=len(raw_data)):
         shopify_df.loc[index, "Handle"] = f"injen-{row['Part Number']}-{row['UPC Code']}"
         shopify_df.loc[index, "Title"] = f"Injen {row['Part Number']} - {clean_text(row['Product Title'])}"
@@ -96,47 +98,28 @@ def to_shopify_csv(path_to_excel, path_to_images):
         shopify_df.loc[index, "Published"] = "TRUE"
         shopify_df.loc[index, "Option1 Name"] = "Title"
         shopify_df.loc[index, "Option1 Value"] = "Default Title"
-        # shopify_df.loc[index, "Option2 Name"] = ""
-        # shopify_df.loc[index, "Option2 Value"] = ""
-        # shopify_df.loc[index, "Option3 Name"] = ""
-        # shopify_df.loc[index, "Option3 Value"] = ""
         shopify_df.loc[index, "Variant SKU"] = row["Part Number"]
         shopify_df.loc[index, "Variant Grams"] = str(round(float(row["Weight\n(Lbs)"]) * 453.592, 2))
-        # shopify_df.loc[index, "Variant Inventory Tracker"] = ""
         shopify_df.loc[index, "Variant Inventory Qty"] = "0"
         shopify_df.loc[index, "Variant Inventory Policy"] = "continue"
         shopify_df.loc[index, "Variant Fulfillment Service"] = "manual"
         shopify_df.loc[index, "Variant Price"] = f"{row['MAP']}"
-        # shopify_df.loc[index, "Variant Compare At Price"] = ""
         shopify_df.loc[index, "Variant Requires Shipping"] = "TRUE"
         shopify_df.loc[index, "Variant Taxable"] = "TRUE"
         shopify_df.loc[index, "Variant Barcode"] = row["UPC Code"]
         shopify_df.loc[index, "Image Src"] = process_images(images_df, row["Part Number"], get_1st_url=True)
+        shopify_df.loc[index, "Image Position"] = "1"
         shopify_df.loc[index, "Image Alt Text"] = row["Part Number"]
         shopify_df.loc[index, "Gift Card"] = "FALSE"
         shopify_df.loc[index, "SEO Title"] = f"{row['Part Number']} - {clean_text(row['Short Description'])}"
         shopify_df.loc[index, "SEO Description"] = clean_text(row["Long Description"])
-        # shopify_df.loc[index, "Google Shopping / Google Product Category"] = ""
-        # shopify_df.loc[index, "Google Shopping / Gender"] = ""
-        # shopify_df.loc[index, "Google Shopping / Age Group"] = ""
-        # shopify_df.loc[index, "Google Shopping / MPN"] = ""
-        # shopify_df.loc[index, "Google Shopping / AdWords Grouping"] = ""
-        # shopify_df.loc[index, "Google Shopping / AdWords Labels"] = ""
-        # shopify_df.loc[index, "Google Shopping / Condition"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Product"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Label 0"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Label 1"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Label 2"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Label 3"] = ""
-        # shopify_df.loc[index, "Google Shopping / Custom Label 4"] = ""
-        # shopify_df.loc[index, "Variant Image"] = ""
         shopify_df.loc[index, "Variant Weight Unit"] = "lb"
-        # shopify_df.loc[index, "Variant Tax Code"] = ""
-        # shopify_df.loc[index, "Cost per item"] = ""
+
     return shopify_df
 
 
 if __name__ == "__main__":
+    print(pyfiglet.figlet_format("Aftermarket Race Plug"))
     shopify_df = to_shopify_csv("data/Master Jobber_10_14_2020_JC.xlsx", "data/image-links.csv")
     os.makedirs("output", exist_ok=True)
     shopify_df.to_csv("output/shopify.csv", index=False, encoding='utf-8', na_rep='')
